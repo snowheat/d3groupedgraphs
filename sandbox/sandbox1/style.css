@@ -1,3 +1,10 @@
 #graphs-container{
     border: 1px solid #ddd;
 }
+
+.curved-line{
+    stroke: #222;
+    stroke-width: 1px;
+    fill: none;
+    marker-end: url(#mark-end-arrow);
+}
