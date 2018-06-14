@@ -5,9 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
+    <link rel="stylesheet" href="style.css">
+
     <title>D3 Grouped Graphs</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.min.js"></script>
 </head>
 <body>
-    
+    <script type="text/javascript">
+        d3.select("body")
+        .append("h1")
+        .text("A simple grouped draggable graphs");
+
+        var svg = d3.select("body")
+        .append("svg")
+        .attr("id", "graphs-container")
+        .attr("width", 800)
+        .attr("height", 600);
+
+        var svgDefs = svg.append("svg:defs");
+        svgDefs.append("svg:marker")
+        .attr("id", "end-arrow")
+        .attr("viewBox", "0 -5 10 10")
+        .attr("refX", "32")
+        .attr('markerWidth', 3.5)
+        .attr('markerHeight', 3.5)
+        .attr('orient', 'auto')
+        .append('svg:path')
+        .attr('d', 'M0,-5L10,0L0,5');
+
+        svgDefs.append('svg:marker')
+        .attr('id', 'mark-end-arrow')
+        .attr('viewBox', '0 -5 10 10')
+        .attr('refX', 7)
+        .attr('markerHeight', 3.5)
+        .attr('orient', 'auto')
+        .append('svg:path')
+        .attr('d', 'M 0,-5 L10,0 L 0,5');
+
+        var svgG = svg.append("g")
+        .attr("id", "svg-g");
+
+        svgG.append("circle")
+        .attr("cx", 100)
+        .attr("cy", 100)
+        .attr("r", 20);
+
+        svgG.append("svg:path")
+        .attr("d", "M 100 350 l 150 -300")
+        .attr("stroke", "red")
+        .attr("stroke-width", "3")
+        .style("marker-end", "url(#mark-end-arrow)");
+    </script>
 </body>
 </html>
