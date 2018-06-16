@@ -4,7 +4,13 @@
 
 .curved-line{
     stroke: #222;
-    stroke-width: 1px;
+    stroke-width: 2px;
     fill: none;
     marker-end: url(#mark-end-arrow);
 }
+
+.active rect{
+    stroke: #000;
+    stroke-width: 2px;
+  }
+  
