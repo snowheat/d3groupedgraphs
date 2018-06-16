@@ -10,12 +10,12 @@
 
     <title>D3 Grouped Graphs</title>
 
+    <script src="es5-shim.min.js"></script>
     <script src="d3.min.js"></script>
 </head>
 
 <body>
     <script type="text/javascript">
-        
         function GraphsEditor(svg) {
 
             var svgDefs = svg.append("svg:defs");
@@ -29,26 +29,53 @@
                 .append('svg:path')
                 .attr('d', 'M 0,-5 L10,0 L 0,5');
 
+            svgDefs.append('svg:circle')
+                .attr('id', 'defs-node-io-unconnected')
+                .attr("r", 4)
+                .attr("fill", "#fff")
+                .attr("stroke", "#ddd")
+                .attr("stroke-width", "1");
+
             var svgG = svg.append("g")
                 .attr("id", "svg-g");
 
-            var processBoxArray = [];
+            this.itemNodes = [];
 
-            let processBox1 = new ProcessBox(svgG, {}, {});
+            var graphsEditor = this;
 
-            let processBox2 = new ProcessBox(svgG, {}, {});
+            let nodeConfig = {
+                title: "Import dataset from url",
+                desc: "File or folder of JPG, PNG, ZIP, RAR. Example of long description.",
+                inputs: [{
+                    ioTypeID: 2
+                }, {
+                    ioTypeID: 3
+                }],
+                outputs: [{
+                    ioTypeID: 1
+                }, {
+                    ioTypeID: 2
+                }, {
+                    ioTypeID: 3
+                }]
+
+            };
+
+
+            this.itemNodes.push(new ItemNode(graphsEditor, svgG, nodeConfig, {}));
+            this.itemNodes.push(new ItemNode(graphsEditor, svgG, nodeConfig, {}));
+
 
         }
 
-        function ProcessBox(svgG, ioConfig, initialPosition) {
+        function ItemNode(graphsEditor, svgG, nodeConfig, initialPosition) {
 
-            console.log("uhuhuy");
 
             this.xDifference;
             this.yDifference;
 
             this.svgG = svgG;
-            this.ioConfig = ioConfig;
+            this.nodeConfig = nodeConfig;
             this.initialPosition = initialPosition;
 
             var self = this;
@@ -95,25 +122,74 @@
                 return [matrix.e, matrix.f];
             };
 
-            var boxG = self.svgG.append("g")
-                .attr("class", "box")
-                .attr("transform", "translate(30, 30)");
+            self.ioMouseOverHandler = function() {
+                d3.select(this)
+                .classed("node-io-mouseover", true);
+            };
 
-            boxG.append("rect")
-                .attr("width", 150)
-                .attr("height", 70)
+            self.ioMouseOutHandler = function() {
+                d3.select(this)
+                .classed("node-io-mouseover", false);                    
+            };
+
+            let nodeG = self.svgG.append("g")
+                .attr("class", "box")
+                .attr("transform", "translate(300, 30)");
+
+
+            self.nodeDescFO = nodeG.append("foreignObject")
+                .attr("x", 40)
+                .attr("y", 30)
+                .attr("width", 230)
+                .attr("height", "100%")
+                .append("xhtml:div");
+
+            self.nodeDescFO.html(nodeConfig.desc);
+
+            let nodeRect = nodeG.append("rect")
+                .attr("width", 280)
+                .attr("height", function(){
+                    console.log("test ");
+                    console.log(self.nodeDescFO.node().offsetHeight);
+                    return self.nodeDescFO.node().offsetHeight + 50;
+                })
                 .attr("rx", 10)
                 .attr("ry", 10)
                 .attr("fill", "#fff")
                 .attr("stroke", "#bbb");
 
-            boxG.append("circle")
-                .attr("r", 5)
-                .attr("fill", "#666")
-                .attr("cx", 75)
-                .attr("cy", 70);
 
-            boxG.call(d3.drag()
+            for (let i = 0; i < self.nodeConfig.inputs.length; i++) {
+
+                let distanceBetweenNodeInputs = nodeRect.attr("width") / (self.nodeConfig.inputs.length + 1) * (i + 1);
+
+                nodeG.append("circle")
+                    .attr("class", "node-io-unconnected node-io-input")
+                    .attr("r", 4)
+                    .attr("cx", distanceBetweenNodeInputs)
+                    .attr("cy", 0)
+                    .on("mouseover", self.ioMouseOverHandler)
+                    .on("mouseout", self.ioMouseOutHandler);
+            }
+
+            for (let i = 0; i < self.nodeConfig.outputs.length; i++) {
+
+                let distanceBetweenNodeOutputs = nodeRect.attr("width") / (self.nodeConfig.outputs.length + 1) * (i + 1);
+
+                nodeG.append("circle")
+                    .attr("class", "node-io-unconnected node-io-input")
+                    .attr("r", 4)
+                    .attr("cx", distanceBetweenNodeOutputs)
+                    .attr("cy", nodeRect.attr("height"));
+            }
+
+            let nodeTitle = nodeG.append("text")
+                .attr("class", "node-title")
+                .attr("x", 40)
+                .attr("y", 20)
+                .text(nodeConfig.title);    
+
+            nodeG.call(d3.drag()
                 .on("start", self.dragstarted)
                 .on("drag", self.dragged)
                 .on("end", self.dragend)
@@ -139,10 +215,12 @@
 
         var svg = d3.select("body")
             .append("svg")
-            .attr("id", "graphs-container")
+            .attr("id", "graphs-editor-container")
             .attr("width", 800)
             .attr("height", 600)
             .attr("style", "background: #f9f9f9");
+
+
 
         let graphsEditor = new GraphsEditor(svg);
     </script>

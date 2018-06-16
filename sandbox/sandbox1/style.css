@@ -1,16 +1,37 @@
-#graphs-container{
+#graphs-editor-container{
     border: 1px solid #ddd;
 }
 
-.curved-line{
+.default-connection{
     stroke: #222;
     stroke-width: 2px;
     fill: none;
     marker-end: url(#mark-end-arrow);
 }
 
+.node-io-unconnected{
+    stroke: #bbb;
+    stroke-width: 1px;
+    fill: #fff;
+}
+
+.node-io-mouseover{
+    stroke: red;
+}
+
+.node-title{
+    font-weight: bold;
+}
+
+.node-desc{
+    width: 200px;
+    word-wrap: break-word;
+}
+
 .active rect{
     stroke: #000;
     stroke-width: 2px;
-  }
+}
+
+
   
