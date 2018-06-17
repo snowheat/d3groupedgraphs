@@ -1,4 +1,10 @@
+/**
+ * GraphsEditor mengelola tahapan-tahapan klasifikasi dalam bentuk graf 
+ * 
+ * @param {svg} svg - Container utama SVG untuk GraphsEditor
+ */
 function GraphsEditor(svg) {
+
     this.itemNodes = [];
     this.selectedNode;
     this.ioTooltip;
@@ -20,6 +26,14 @@ function GraphsEditor(svg) {
         .attr("fill", "#fff")
         .attr("stroke", "#ddd")
         .attr("stroke-width", "1");
+
+    
+    /**
+     * Posisi awal sub-simpul input output mulai didrag
+     */
+    this.ioStartDragPositionX, this.ioStartDragPositionY;
+    this.ioCurrentDragPosition;
+    this.isDraggingIOLine = false;
 
     var graphsEditor = this;
 

@@ -1,14 +1,54 @@
+/**
+ * ItemNode representasi satu tahapan klasifikasi
+ * memiliki sub-simpul input dan sub-simpul output
+ * 
+ * @param {GraphsEditor} graphsEditor - digunakan untuk memanipulasi GraphsEditor  
+ * @param {*} nodeConfig - konfigurasi untuk tiap simpul
+ * @param {*} initialPosition - posisi awal penempatan simpul tahapan
+ */
 function ItemNode(graphsEditor, nodeConfig, initialPosition) {
 
+    /**
+     * Beda antara <<posisi awal simpul tahapan>> dengan <<posisi mouse ketika mendrag>>
+     */
+    this.xDifference, this.yDifference;
 
-    this.xDifference;
-    this.yDifference;
-
+    /**
+     * Group utama dari GraphsEditor
+     * untuk manipulasi elemen-elemen di dalamnya
+     */
     this.svgG = graphsEditor.svgG;
+
+    /**
+     * Konfigurasi simpul tahapan
+     */
     this.nodeConfig = nodeConfig;
+
+    this.nodeG;
+
+    /**
+     * Posisi awal simpul tahapan
+     */
     this.initialPosition = initialPosition;
 
+    /**
+     * Variabel penunjuk objek kelas ini
+     */
     var self = this;
+
+    /**
+     * nodeG group dari simpul tahapan 
+     * elemen-elemen bagian dari simpul tahapan seperti 
+     * sub-simpul input output, judul simpul tahapan, deskripsi simpul tahapan ditambahkan kesini
+     */
+
+    self.nodeG = self.svgG.append("g")
+        .attr("class", "node")
+        .attr("transform", "translate(300, 30)");
+
+    /**
+     * Event listener ketika simpul tahapan didrag
+     */
 
     self.dragstarted = function (d) {
         d3.select(this).raise().classed("active", true);
@@ -33,14 +73,33 @@ function ItemNode(graphsEditor, nodeConfig, initialPosition) {
         console.log("dragend");
     };
 
+    /**
+     * Event listener ketika sub-simpul input output tahapan didrag
+     */
+
     self.ioDragListener = function (selection, eventType) {
 
         if (eventType == "dragstart") {
+
             console.log("ioDragstarted 22");
+
+            graphsEditor.isDraggingIOLine = true;
+
+            graphsEditor.ioStartDragPositionX = d3.event.x;
+            graphsEditor.ioStartDragPositionY = d3.event.y;
+
+            graphsEditor.svgG.append("path")
+                .attr("id", "io-connect-nodes-path")
+                .attr("d", "M " + graphsEditor.ioStartDragPositionX +
+                    "," + graphsEditor.ioStartDragPositionY +
+                    " L " + graphsEditor.ioStartDragPositionX +
+                    ", " + graphsEditor.ioStartDragPositionY + " ")
+                .attr("stroke", "#333");
+
         } else if (eventType == "mouseenter") {
             console.log("ioMouseenter 22");
             selection.classed("node-io-mouseenter", true);
-            let gPosition = self.getTranslation(nodeG.attr("transform"));
+            let gPosition = self.getTranslation(self.nodeG.attr("transform"));
             let tooltipCx = gPosition[0] + parseInt(selection.attr("cx"));
             let tooltipCy = gPosition[1] + parseInt(selection.attr("cy"));
 
@@ -93,11 +152,28 @@ function ItemNode(graphsEditor, nodeConfig, initialPosition) {
 
         } else if (eventType == "dragend") {
             console.log("ioDragend 22");
+            
+            graphsEditor.svgG.select("#io-connect-nodes-path").remove();
+        
+            graphsEditor.isDraggingIOLine = false;
+        
         } else if (eventType == "dragon") {
+
             console.log("ioDragon 22");
+            graphsEditor.svgG.select("#io-connect-nodes-path")
+                .attr("d", "M " + graphsEditor.ioStartDragPositionX +
+                    "," + graphsEditor.ioStartDragPositionY +
+                    " L " + d3.event.x +
+                    ", " + d3.event.y + " ");
+            
+            
         }
 
     };
+
+    /**
+     * Mengambil posisi x dan y dari atribut transform pada group
+     */
 
     self.getTranslation = function (transform) {
 
@@ -120,9 +196,9 @@ function ItemNode(graphsEditor, nodeConfig, initialPosition) {
 
 
 
-    let nodeG = self.svgG.append("g")
-        .attr("class", "node")
-        .attr("transform", "translate(300, 30)");
+    /**
+     * Listener ketika area simpul tahapan dimasuki mouse
+     */
 
     self.rectMouseEnterHandler = function (e) {
         d3.select(this)
@@ -130,60 +206,21 @@ function ItemNode(graphsEditor, nodeConfig, initialPosition) {
             .attr("stroke-width", 2);
     }
 
+    /**
+     * Listener ketika area simpul tahapan ditinggalkan mouse
+     */
+
     self.rectMouseLeaveHandler = function (e) {
         d3.select(this)
             .attr("stroke", "#bbb")
             .attr("stroke-width", 1);
     }
 
-    self.ioMouseEnterHandler = function (e) {
-        d3.select(this)
-            .classed("node-io-mouseenter", true);
+    /**
+     * Judul dan deskripsi dari simpul tahapan
+     */
 
-        let gPosition = self.getTranslation(nodeG.attr("transform"));
-        let tooltipCx = gPosition[0] + parseInt(d3.select(this).attr("cx"));
-        let tooltipCy = gPosition[1] + parseInt(d3.select(this).attr("cy"));
-
-        let ioTooltipTextBox = graphsEditor.svgG.append("rect")
-            .attr("class", "node-io-tooltip")
-            .attr("x", tooltipCx)
-            .attr("y", tooltipCy - 12)
-            .attr("stroke", "#ddd")
-            .attr("fill", "#fff")
-            .attr("height", 24);
-
-        let ioTooltipText = graphsEditor.svgG.append("text")
-            .attr("class", "node-io-tooltip")
-            .attr("x", tooltipCx + 20)
-            .attr("y", tooltipCy + 4)
-            .text("Contoh keterangan teks");
-
-        ioTooltipTextBox.attr("width", ioTooltipText.node().getBBox().width + 40)
-
-        graphsEditor.svgG.append("circle")
-            .attr("class", "node-io-tooltip")
-            .attr("fill", "#fff")
-            .attr("r", 13)
-            .attr("stroke", "#999")
-            .attr("stroke-width", 2)
-            .attr("cx", tooltipCx)
-            .attr("cy", tooltipCy);
-
-        graphsEditor.svgG.selectAll(".node-io-tooltip")
-            .on("mouseleave", self.ioMouseLeaveHandler);
-
-    };
-
-    self.ioMouseLeaveHandler = function () {
-        console.log("mouse Out");
-        d3.select(this)
-            .classed("node-io-mouseleave", false);
-
-        graphsEditor.svgG.selectAll(".node-io-tooltip").remove();
-    };
-
-
-    self.nodeDescFO = nodeG.append("foreignObject")
+    self.nodeDescFO = self.nodeG.append("foreignObject")
         .attr("x", 40)
         .attr("y", 40)
         .attr("width", 230)
@@ -192,7 +229,7 @@ function ItemNode(graphsEditor, nodeConfig, initialPosition) {
     self.nodeDescFO.append("xhtml:div")
         .html(nodeConfig.desc);
 
-    let nodeRect = nodeG.append("rect")
+    let nodeRect = self.nodeG.append("rect")
         .attr("width", 280)
         .attr("height", function () {
             return self.nodeDescFO.select("div").node().offsetHeight + 60;
@@ -204,73 +241,18 @@ function ItemNode(graphsEditor, nodeConfig, initialPosition) {
         .attr("stroke-width", "1");
 
 
-    let nodeTitle = nodeG.append("text")
+    let nodeTitle = self.nodeG.append("text")
         .attr("class", "node-title")
         .attr("x", 40)
         .attr("y", 30)
         .text(nodeConfig.title);
 
-    for (let i = 0; i < self.nodeConfig.inputs.length; i++) {
 
-        let distanceBetweenNodeInputs = nodeRect.attr("width") / (self.nodeConfig.inputs.length + 1) * (i + 1);
+    /**
+     * Event ketika group simpul tahapan diklik
+     */
 
-        nodeG.append("circle")
-            .attr("class", "node-io-unconnected node-io-input")
-            .attr("r", 5)
-            .attr("stroke-width", 1)
-            .attr("stroke", "#777")
-            .attr("fill", "#fff")
-            .attr("cx", distanceBetweenNodeInputs)
-            .attr("cy", 0)
-            .on("mouseenter", self.ioMouseEnterHandler);
-    }
-
-    for (let i = 0; i < self.nodeConfig.outputs.length; i++) {
-
-        let distanceBetweenNodeOutputs = nodeRect.attr("width") / (self.nodeConfig.outputs.length + 1) * (i + 1);
-
-        nodeG.append("circle")
-            .attr("class", "node-io-unconnected node-io-output")
-            .attr("r", 5)
-            .attr("stroke-width", 1)
-            .attr("stroke", "#777")
-            .attr("fill", "#fff")
-            .attr("cx", distanceBetweenNodeOutputs)
-            .attr("cy", nodeRect.attr("height"));
-
-        nodeG.append("text")
-            .attr("class", "node-io-output-number")
-            .attr("dx", distanceBetweenNodeOutputs - 4)
-            .attr("dy", parseInt(nodeRect.attr("height")) + 4)
-            .attr("font-size", 16)
-            .attr("display", "none")
-            .text((i + 1));
-
-        nodeG.append("circle")
-            .attr("class", "node-io-mousearea node-io-output")
-            .attr("r", 5)
-            .attr("fill", "#fff")
-            .attr("opacity", 0)
-            .attr("cx", distanceBetweenNodeOutputs)
-            .attr("cy", nodeRect.attr("height"))
-            .call(d3.drag()
-                .on("start", function () {
-                    self.ioDragListener(d3.select(this), 'dragstart');
-                })
-                .on("drag", function () {
-                    self.ioDragListener(d3.event, 'dragon');
-                })
-                .on("end", function () {
-                    self.ioDragListener(d3.select(this), 'dragend');
-                })
-            ).on('mouseenter', function () {
-                self.ioDragListener(d3.select(this), 'mouseenter');
-            });
-    }
-
-
-
-    nodeG.on("click", function () {
+    self.nodeG.on("click", function () {
         if (graphsEditor.selectedNode != null) {
             graphsEditor.selectedNode.classed("node-selected", false);
 
@@ -302,9 +284,89 @@ function ItemNode(graphsEditor, nodeConfig, initialPosition) {
 
     });
 
-    nodeG.call(d3.drag()
+    /**
+     * Event ketika group simpul tahapan didrag
+     */
+
+    self.nodeG.call(d3.drag()
         .on("start", self.dragstarted)
         .on("drag", self.dragged)
         .on("end", self.dragend)
     );
+
+    /**
+     * Inisiasi dan pendaftaran event untuk tiap sub-simpul input output tahapan
+     */
+
+    for (let i = 0; i < self.nodeConfig.inputs.length; i++) {
+
+        let distanceBetweenNodeInputs = nodeRect.attr("width") / (self.nodeConfig.inputs.length + 1) * (i + 1);
+
+        self.nodeG.append("circle")
+            .attr("class", "node-io-unconnected node-io-input")
+            .attr("r", 5)
+            .attr("stroke-width", 1)
+            .attr("stroke", "#777")
+            .attr("fill", "#fff")
+            .attr("cx", distanceBetweenNodeInputs)
+            .attr("cy", 0)
+            .call(d3.drag()
+                .on("start", function () {
+                    self.ioDragListener(d3.select(this), 'dragstart');
+                })
+                .on("drag", function () {
+                    self.ioDragListener(d3.event, 'dragon');
+                })
+                .on("end", function () {
+                    self.ioDragListener(d3.select(this), 'dragend');
+                })
+            ).on('mouseenter', function () {
+                self.ioDragListener(d3.select(this), 'mouseenter');
+            });
+    }
+
+    for (let i = 0; i < self.nodeConfig.outputs.length; i++) {
+
+        let distanceBetweenNodeOutputs = nodeRect.attr("width") / (self.nodeConfig.outputs.length + 1) * (i + 1);
+
+        self.nodeG.append("circle")
+            .attr("class", "node-io-unconnected node-io-output")
+            .attr("r", 5)
+            .attr("stroke-width", 1)
+            .attr("stroke", "#777")
+            .attr("fill", "#fff")
+            .attr("cx", distanceBetweenNodeOutputs)
+            .attr("cy", nodeRect.attr("height"));
+
+        self.nodeG.append("text")
+            .attr("class", "node-io-output-number")
+            .attr("dx", distanceBetweenNodeOutputs - 4)
+            .attr("dy", parseInt(nodeRect.attr("height")) + 4)
+            .attr("font-size", 16)
+            .attr("display", "none")
+            .text((i + 1));
+
+        self.nodeG.append("circle")
+            .attr("class", "node-io-mousearea node-io-output")
+            .attr("r", 5)
+            .attr("fill", "#fff")
+            .attr("opacity", 0)
+            .attr("cx", distanceBetweenNodeOutputs)
+            .attr("cy", nodeRect.attr("height"))
+            .call(d3.drag()
+                .on("start", function () {
+                    self.ioDragListener(d3.select(this), 'dragstart');
+                })
+                .on("drag", function () {
+                    self.ioDragListener(d3.event, 'dragon');
+                })
+                .on("end", function () {
+                    self.ioDragListener(d3.select(this), 'dragend');
+                })
+            ).on('mouseenter', function () {
+                self.ioDragListener(d3.select(this), 'mouseenter');
+            });
+    }
+
+
 }
