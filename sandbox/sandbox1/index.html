@@ -18,6 +18,10 @@
     <script type="text/javascript">
         function GraphsEditor(svg) {
 
+            this.itemNodes = [];
+            this.selectedNode;
+            this.ioTooltip;
+
             var svgDefs = svg.append("svg:defs");
 
             svgDefs.append('svg:marker')
@@ -36,16 +40,36 @@
                 .attr("stroke", "#ddd")
                 .attr("stroke-width", "1");
 
-            var svgG = svg.append("g")
-                .attr("id", "svg-g");
-
-            this.itemNodes = [];
-
             var graphsEditor = this;
 
+            graphsEditor.svgG = svg.append("g")
+                .attr("id", "svg-g");
+
+            graphsEditor.backgroundRect = graphsEditor.svgG.append("rect")
+                .attr("id", "graphic-editor-background-rect")
+                .attr("width", "100%")
+                .attr("height", "100%")
+                .attr("fill", "#eee")
+                .on("click", function () {
+                    if (graphsEditor.selectedNode != null) {
+
+                        graphsEditor.selectedNode.select("rect")
+                            .attr("stroke", "#bbb")
+                            .attr("stroke-width", 1);
+                        graphsEditor.selectedNode.selectAll("text.node-io-output-number")
+                            .attr("display", "none");
+                        graphsEditor.selectedNode.selectAll("circle.node-io-output")
+                            .attr("r", 5)
+                            .attr("stroke-width", 1);
+
+                        graphsEditor.selectedNode.classed("node-selected", false);
+                        graphsEditor.selectedNode = null;
+                    }
+                });
+
             let nodeConfig = {
-                title: "Import dataset from url",
-                desc: "File or folder of JPG, PNG, ZIP, RAR. Example of long description.",
+                title: "Impor gambar dari url",
+                desc: "File atau folder ekstensi JPG, PNG, ZIP, atau RAR.",
                 inputs: [{
                     ioTypeID: 2
                 }, {
@@ -62,19 +86,19 @@
             };
 
 
-            this.itemNodes.push(new ItemNode(graphsEditor, svgG, nodeConfig, {}));
-            this.itemNodes.push(new ItemNode(graphsEditor, svgG, nodeConfig, {}));
+            this.itemNodes.push(new ItemNode(graphsEditor, nodeConfig, {}));
+            this.itemNodes.push(new ItemNode(graphsEditor, nodeConfig, {}));
 
 
         }
 
-        function ItemNode(graphsEditor, svgG, nodeConfig, initialPosition) {
+        function ItemNode(graphsEditor, nodeConfig, initialPosition) {
 
 
             this.xDifference;
             this.yDifference;
 
-            this.svgG = svgG;
+            this.svgG = graphsEditor.svgG;
             this.nodeConfig = nodeConfig;
             this.initialPosition = initialPosition;
 
@@ -103,6 +127,72 @@
                 console.log("dragend");
             };
 
+            self.ioDragListener = function (selection, eventType) {
+
+                if (eventType == "dragstart") {
+                    console.log("ioDragstarted 22");
+                } else if (eventType == "mouseenter") {
+                    console.log("ioMouseenter 22");
+                    selection.classed("node-io-mouseenter", true);
+                    let gPosition = self.getTranslation(nodeG.attr("transform"));
+                    let tooltipCx = gPosition[0] + parseInt(selection.attr("cx"));
+                    let tooltipCy = gPosition[1] + parseInt(selection.attr("cy"));
+
+                    let ioTooltipTextBox = graphsEditor.svgG.append("rect")
+                        .attr("class", "node-io-tooltip")
+                        .attr("x", tooltipCx)
+                        .attr("y", tooltipCy - 12)
+                        .attr("stroke", "#ddd")
+                        .attr("fill", "#fff")
+                        .attr("height", 24);
+
+                    let ioTooltipText = graphsEditor.svgG.append("text")
+                        .attr("class", "node-io-tooltip")
+                        .attr("x", tooltipCx + 20)
+                        .attr("y", tooltipCy + 4)
+                        .text("Contoh keterangan teks");
+
+                    ioTooltipTextBox.attr("width", ioTooltipText.node().getBBox().width + 40)
+
+                    graphsEditor.svgG.append("circle")
+                        .attr("class", "node-io-tooltip")
+                        .attr("fill", "#fff")
+                        .attr("r", 13)
+                        .attr("stroke", "#999")
+                        .attr("stroke-width", 2)
+                        .attr("cx", tooltipCx)
+                        .attr("cy", tooltipCy);
+
+                    graphsEditor.svgG.selectAll("circle.node-io-tooltip")
+                        .call(d3.drag()
+                            .on("start", function () {
+                                self.ioDragListener(selection, 'dragstart');
+                            })
+                            .on("drag", function () {
+                                self.ioDragListener(d3.event, 'dragon');
+                            })
+                            .on("end", function () {
+                                self.ioDragListener(selection, 'dragend');
+                            })
+                        ).on('mouseleave', function () {
+                            self.ioDragListener(selection, 'mouseleave');
+                        });
+
+
+                } else if (eventType == "mouseleave") {
+                    console.log("ioMouseleave 22");
+                    selection.classed("node-io-mouseleave", false);
+
+                    graphsEditor.svgG.selectAll(".node-io-tooltip").remove();
+
+                } else if (eventType == "dragend") {
+                    console.log("ioDragend 22");
+                } else if (eventType == "dragon") {
+                    console.log("ioDragon 22");
+                }
+
+            };
+
             self.getTranslation = function (transform) {
 
                 // Create a dummy g for calculation purposes only. This will never
@@ -122,42 +212,97 @@
                 return [matrix.e, matrix.f];
             };
 
-            self.ioMouseOverHandler = function() {
-                d3.select(this)
-                .classed("node-io-mouseover", true);
-            };
 
-            self.ioMouseOutHandler = function() {
-                d3.select(this)
-                .classed("node-io-mouseover", false);                    
-            };
 
             let nodeG = self.svgG.append("g")
-                .attr("class", "box")
+                .attr("class", "node")
                 .attr("transform", "translate(300, 30)");
+
+            self.rectMouseEnterHandler = function (e) {
+                d3.select(this)
+                    .attr("stroke", "#777")
+                    .attr("stroke-width", 2);
+            }
+
+            self.rectMouseLeaveHandler = function (e) {
+                d3.select(this)
+                    .attr("stroke", "#bbb")
+                    .attr("stroke-width", 1);
+            }
+
+            self.ioMouseEnterHandler = function (e) {
+                d3.select(this)
+                    .classed("node-io-mouseenter", true);
+
+                let gPosition = self.getTranslation(nodeG.attr("transform"));
+                let tooltipCx = gPosition[0] + parseInt(d3.select(this).attr("cx"));
+                let tooltipCy = gPosition[1] + parseInt(d3.select(this).attr("cy"));
+
+                let ioTooltipTextBox = graphsEditor.svgG.append("rect")
+                    .attr("class", "node-io-tooltip")
+                    .attr("x", tooltipCx)
+                    .attr("y", tooltipCy - 12)
+                    .attr("stroke", "#ddd")
+                    .attr("fill", "#fff")
+                    .attr("height", 24);
+
+                let ioTooltipText = graphsEditor.svgG.append("text")
+                    .attr("class", "node-io-tooltip")
+                    .attr("x", tooltipCx + 20)
+                    .attr("y", tooltipCy + 4)
+                    .text("Contoh keterangan teks");
+
+                ioTooltipTextBox.attr("width", ioTooltipText.node().getBBox().width + 40)
+
+                graphsEditor.svgG.append("circle")
+                    .attr("class", "node-io-tooltip")
+                    .attr("fill", "#fff")
+                    .attr("r", 13)
+                    .attr("stroke", "#999")
+                    .attr("stroke-width", 2)
+                    .attr("cx", tooltipCx)
+                    .attr("cy", tooltipCy);
+
+                graphsEditor.svgG.selectAll(".node-io-tooltip")
+                    .on("mouseleave", self.ioMouseLeaveHandler);
+
+            };
+
+            self.ioMouseLeaveHandler = function () {
+                console.log("mouse Out");
+                d3.select(this)
+                    .classed("node-io-mouseleave", false);
+
+                graphsEditor.svgG.selectAll(".node-io-tooltip").remove();
+            };
 
 
             self.nodeDescFO = nodeG.append("foreignObject")
                 .attr("x", 40)
-                .attr("y", 30)
+                .attr("y", 40)
                 .attr("width", 230)
-                .attr("height", "100%")
-                .append("xhtml:div");
+                .attr("height", 40);
 
-            self.nodeDescFO.html(nodeConfig.desc);
+            self.nodeDescFO.append("xhtml:div")
+                .html(nodeConfig.desc);
 
             let nodeRect = nodeG.append("rect")
                 .attr("width", 280)
-                .attr("height", function(){
-                    console.log("test ");
-                    console.log(self.nodeDescFO.node().offsetHeight);
-                    return self.nodeDescFO.node().offsetHeight + 50;
+                .attr("height", function () {
+                    return self.nodeDescFO.select("div").node().offsetHeight + 60;
                 })
                 .attr("rx", 10)
                 .attr("ry", 10)
                 .attr("fill", "#fff")
-                .attr("stroke", "#bbb");
+                .attr("stroke", "#bbb")
+                .attr("stroke-width", "1");
 
+
+            let nodeTitle = nodeG.append("text")
+                .attr("class", "node-title")
+                .attr("x", 40)
+                .attr("y", 30)
+                .text(nodeConfig.title);
 
             for (let i = 0; i < self.nodeConfig.inputs.length; i++) {
 
@@ -165,11 +310,13 @@
 
                 nodeG.append("circle")
                     .attr("class", "node-io-unconnected node-io-input")
-                    .attr("r", 4)
+                    .attr("r", 5)
+                    .attr("stroke-width", 1)
+                    .attr("stroke", "#777")
+                    .attr("fill", "#fff")
                     .attr("cx", distanceBetweenNodeInputs)
                     .attr("cy", 0)
-                    .on("mouseover", self.ioMouseOverHandler)
-                    .on("mouseout", self.ioMouseOutHandler);
+                    .on("mouseenter", self.ioMouseEnterHandler);
             }
 
             for (let i = 0; i < self.nodeConfig.outputs.length; i++) {
@@ -177,17 +324,77 @@
                 let distanceBetweenNodeOutputs = nodeRect.attr("width") / (self.nodeConfig.outputs.length + 1) * (i + 1);
 
                 nodeG.append("circle")
-                    .attr("class", "node-io-unconnected node-io-input")
-                    .attr("r", 4)
+                    .attr("class", "node-io-unconnected node-io-output")
+                    .attr("r", 5)
+                    .attr("stroke-width", 1)
+                    .attr("stroke", "#777")
+                    .attr("fill", "#fff")
                     .attr("cx", distanceBetweenNodeOutputs)
                     .attr("cy", nodeRect.attr("height"));
+
+                nodeG.append("text")
+                    .attr("class", "node-io-output-number")
+                    .attr("dx", distanceBetweenNodeOutputs - 4)
+                    .attr("dy", parseInt(nodeRect.attr("height")) + 4)
+                    .attr("font-size", 16)
+                    .attr("display", "none")
+                    .text((i + 1));
+
+                nodeG.append("circle")
+                    .attr("class", "node-io-mousearea node-io-output")
+                    .attr("r", 5)
+                    .attr("fill", "#fff")
+                    .attr("opacity", 0)
+                    .attr("cx", distanceBetweenNodeOutputs)
+                    .attr("cy", nodeRect.attr("height"))
+                    .call(d3.drag()
+                        .on("start", function () {
+                            self.ioDragListener(d3.select(this), 'dragstart');
+                        })
+                        .on("drag", function () {
+                            self.ioDragListener(d3.event, 'dragon');
+                        })
+                        .on("end", function () {
+                            self.ioDragListener(d3.select(this), 'dragend');
+                        })
+                    ).on('mouseenter', function () {
+                        self.ioDragListener(d3.select(this), 'mouseenter');
+                    });
             }
 
-            let nodeTitle = nodeG.append("text")
-                .attr("class", "node-title")
-                .attr("x", 40)
-                .attr("y", 20)
-                .text(nodeConfig.title);    
+
+
+            nodeG.on("click", function () {
+                if (graphsEditor.selectedNode != null) {
+                    graphsEditor.selectedNode.classed("node-selected", false);
+
+                    graphsEditor.selectedNode.select("rect")
+                        .attr("stroke", "#bbb")
+                        .attr("stroke-width", 1);
+                    graphsEditor.selectedNode.selectAll("text.node-io-output-number")
+                        .attr("display", "none");
+                    graphsEditor.selectedNode.selectAll("circle.node-io-output")
+                        .attr("r", 5)
+                        .attr("stroke-width", 1);
+                }
+
+                graphsEditor.selectedNode = d3.select(this);
+                graphsEditor.selectedNode.classed("node-selected", true);
+
+                graphsEditor.selectedNode.select("rect")
+                    .attr("stroke", "#2086BF")
+                    .attr("stroke-width", 3);
+                graphsEditor.selectedNode.selectAll("text.node-io-output-number")
+                    .attr("display", "block");
+                graphsEditor.selectedNode.selectAll("circle.node-io-output")
+                    .attr("r", 13)
+                    .attr("stroke-width", 2);
+                graphsEditor.selectedNode.selectAll("circle.node-io-mousearea")
+                    .attr("opacity", 0)
+                    .attr("r", 13)
+                    .attr("stroke-width", 2);
+
+            });
 
             nodeG.call(d3.drag()
                 .on("start", self.dragstarted)
@@ -219,8 +426,6 @@
             .attr("width", 800)
             .attr("height", 600)
             .attr("style", "background: #f9f9f9");
-
-
 
         let graphsEditor = new GraphsEditor(svg);
     </script>
