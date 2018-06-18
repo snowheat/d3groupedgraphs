@@ -1,0 +1,42 @@
+.node-title{
+    font-weight: bold;
+}
+
+/*
+
+#graphs-editor-container{
+    border: 1px solid #ddd;
+}
+
+#graphic-editor-background-rect{
+    fill: #ddd;
+}    
+
+.default-connection{
+    stroke: #222;
+    stroke-width: 2px;
+    fill: none;
+    marker-end: url(#mark-end-arrow);
+}
+
+.node-io-mouseover{
+    stroke: red;
+}
+
+.node-selected rect{
+    stroke: #2086BF;
+    stroke-width: 3px;
+}
+
+.node-desc{
+    width: 200px;
+    word-wrap: break-word;
+}
+
+.active rect{
+    stroke: #000;
+    stroke-width: 2px;
+}
+
+
+*/  

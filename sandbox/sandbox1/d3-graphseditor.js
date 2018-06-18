@@ -4,13 +4,27 @@
  * @param {svg} svg - Container utama SVG untuk GraphsEditor
  */
 function GraphsEditor(svg) {
+    
+    /**
+     * Menyimpan data hubungan antar simpul dan sub-simpul GraphsEditor
+     */
+    this.graphsData = {};
 
+    /**
+     * Menyimpan setiap simpul yang dibuat
+     */
     this.itemNodes = [];
+
+    /**
+     * Simpul tahapan yang sedang diklik
+     */
     this.selectedNode;
-    this.ioTooltip;
 
     var svgDefs = svg.append("svg:defs");
 
+    /**
+     * Komponen untuk digunakan berkali-kali
+     */
     svgDefs.append('svg:marker')
         .attr('id', 'mark-end-arrow')
         .attr('viewBox', '0 -5 10 10')
@@ -26,20 +40,49 @@ function GraphsEditor(svg) {
         .attr("fill", "#fff")
         .attr("stroke", "#ddd")
         .attr("stroke-width", "1");
-
     
     /**
-     * Posisi awal sub-simpul input output mulai didrag
+     * Posisi awal sub-simpul IO ketika mulai mendrag garis tahapan
      */
     this.ioStartDragPositionX, this.ioStartDragPositionY;
-    this.ioCurrentDragPosition;
-    this.isDraggingIOLine = false;
 
+    /**
+     * Posisi mouse mendrag garis tahapan
+     */
+    this.ioCurrentDragPosition;
+    
+    /**
+     * Apakah sedang mendrag garis tahapan
+     */
+    this.ioIsDraggingLine = false;
+    
+    /**
+     * Apakah mouse masuk area sub-simpul IO
+     */
+    this.ioIsMouseEnter = false;
+
+    /**
+     * Sub-simpul IO asal
+     */
+    this.ioSource = null;
+
+    /**
+     * Sub-simpul IO tujuan
+     */
+    this.ioDestination = null;
+    
+    /**
+     * Representasi GraphsEditor
+     */
     var graphsEditor = this;
 
+    /**
+     * Group SVG utama untuk menampung simpul-simpul tahapan
+     */
     graphsEditor.svgG = svg.append("g")
         .attr("id", "svg-g");
 
+    
     graphsEditor.backgroundRect = graphsEditor.svgG.append("rect")
         .attr("id", "graphic-editor-background-rect")
         .attr("width", "100%")
@@ -59,6 +102,11 @@ function GraphsEditor(svg) {
 
                 graphsEditor.selectedNode.classed("node-selected", false);
                 graphsEditor.selectedNode = null;
+            }
+        })
+        .on("mousemove", function(){
+            if(self.isDragNewItemFromMenu == null){
+                console.log(d3.event.x);
             }
         });
 

@@ -83,7 +83,7 @@ function ItemNode(graphsEditor, nodeConfig, initialPosition) {
 
             console.log("ioDragstarted 22");
 
-            graphsEditor.isDraggingIOLine = true;
+            graphsEditor.ioIsDraggingLine = true;
 
             graphsEditor.ioStartDragPositionX = d3.event.x;
             graphsEditor.ioStartDragPositionY = d3.event.y;
@@ -98,6 +98,8 @@ function ItemNode(graphsEditor, nodeConfig, initialPosition) {
 
         } else if (eventType == "mouseenter") {
             console.log("ioMouseenter 22");
+            graphsEditor.ioIsMouseEnter = true;
+
             selection.classed("node-io-mouseenter", true);
             let gPosition = self.getTranslation(self.nodeG.attr("transform"));
             let tooltipCx = gPosition[0] + parseInt(selection.attr("cx"));
@@ -146,19 +148,35 @@ function ItemNode(graphsEditor, nodeConfig, initialPosition) {
 
         } else if (eventType == "mouseleave") {
             console.log("ioMouseleave 22");
+            graphsEditor.ioIsMouseEnter = false;
             selection.classed("node-io-mouseleave", false);
 
             graphsEditor.svgG.selectAll(".node-io-tooltip").remove();
 
         } else if (eventType == "dragend") {
             console.log("ioDragend 22");
-            
+
+            if(graphsEditor.ioIsMouseEnter == true)
+            {
+                console.log(graphsEditor.ioIsMouseEnter);
+
+                graphsEditor.svgG.append("path")
+                .attr("class", "io-connecting-path")
+                .attr("d", "M " + graphsEditor.ioStartDragPositionX +
+                    "," + graphsEditor.ioStartDragPositionY +
+                    " L " + d3.event.x +
+                    ", " + d3.event.y + " ")
+                .attr("stroke", "#333")
+                .attr("stroke-width", "2");
+
+            }
+
             graphsEditor.svgG.select("#io-connect-nodes-path").remove();
         
-            graphsEditor.isDraggingIOLine = false;
+            graphsEditor.ioIsDraggingLine = false;
         
         } else if (eventType == "dragon") {
-
+            console.log("graphsEditor.ioIsDraggingLine " + graphsEditor.ioIsDraggingLine);
             console.log("ioDragon 22");
             graphsEditor.svgG.select("#io-connect-nodes-path")
                 .attr("d", "M " + graphsEditor.ioStartDragPositionX +
@@ -370,3 +388,5 @@ function ItemNode(graphsEditor, nodeConfig, initialPosition) {
 
 
 }
+
+//https://bl.ocks.org/cjrd/6863459
