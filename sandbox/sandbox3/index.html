@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link rel="stylesheet" href="style.css">
+
+    <title>D3 Grouped Graphs</title>
+
+    <script src="es5-shim.min.js"></script>
+    <script src="d3.min.js"></script>
+    <script src="d3-graphs-editor.js"></script>
+    <script src="d3-item-node.js"></script>
+    <script src="d3-connecting-line.js"></script>
+</head>
+
+<body>
+    <script type="text/javascript">
+        d3.select("body")
+        .append("h1")
+        .text("sandbox2");
+
+        let svgContainer = d3.select("body")
+        .append("svg")
+        .attr("width", 800)
+        .attr("height", 600)
+        .attr("style", "background:#eee");
+
+        let initialData = [
+            {
+                id: 1, 
+                itemTypeID: 1,
+                title: "Impor gambar dari url",
+                description: "File atau folder ekstensi JPG, PNG, ZIP, atau RAR.",
+                position: [30, 30],
+                inputNodes: [{dataTypeID: 1}, {dataTypeID: 2}],
+                outputNodes: [{dataTypeID: 2}, {dataTypeID: 3}]
+            },
+            {
+                id: 2, 
+                itemTypeID: 2,
+                title: "Preproses data",
+                description: "",
+                position: [230, 100],
+                inputNodes: [{dataTypeID: 3}],
+                outputNodes: [{dataTypeID: 4}, {dataTypeID: 5}]
+            }
+        ]
+
+        let graphsEditor = new GraphsEditor(svgContainer, initialData);
+
+    </script>
+</body>
+
+</html>
