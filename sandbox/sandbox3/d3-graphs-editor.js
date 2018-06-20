@@ -1,5 +1,7 @@
-function GraphsEditor(svgContainer, initialData = null) {
+function GraphsEditor(svgContainer, nodes = null, edges = null) {
     let self = this;
+
+    self.newNodeID = nodes.length + 1;
 
     self.isDragNewItemFromMenu = false;
 
@@ -8,6 +10,8 @@ function GraphsEditor(svgContainer, initialData = null) {
     self.itemNodes = [];
 
     self.connectingLines = [];
+
+    console.log(nodes);
 
     /**
      * Main
@@ -47,9 +51,11 @@ function GraphsEditor(svgContainer, initialData = null) {
             }
         });
 
-    initialData.forEach(function (itemNodeData, i) {
+    /*
+    nodes.forEach(function (itemNodeData, i) {
         self.itemNodes.push(new ItemNode(self, itemNodeData));
     });
+     */
 
 
 
@@ -57,3 +63,4 @@ function GraphsEditor(svgContainer, initialData = null) {
 
 //http://cs224d.stanford.edu/
 //https://bl.ocks.org/cjrd/6863459
+https://bl.ocks.org/cjrd/6863459

@@ -29,7 +29,7 @@
         .attr("height", 600)
         .attr("style", "background:#eee");
 
-        let initialData = [
+        let nodes = [
             {
                 id: 1, 
                 itemTypeID: 1,
@@ -50,7 +50,11 @@
             }
         ]
 
-        let graphsEditor = new GraphsEditor(svgContainer, initialData);
+        let edges = [
+
+        ]
+
+        let graphsEditor = new GraphsEditor(svgContainer, nodes, edges);
 
     </script>
 </body>

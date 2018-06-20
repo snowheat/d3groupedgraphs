@@ -1,6 +1,8 @@
 function GraphsEditor(svgContainer, initialData = null) {
     let self = this;
 
+    self.newNodeID = 1;
+
     self.isDragNewItemFromMenu = false;
 
     self.itemNodeSelected = null;
@@ -8,6 +10,15 @@ function GraphsEditor(svgContainer, initialData = null) {
     self.itemNodes = [];
 
     self.connectingLines = [];
+
+    if(initialData.length>0){
+        initialData.forEach(function(nodeData, i){
+            nodeData.id = self.newNodeID;
+            self.newNodeID ++;
+        });
+    }
+
+    console.log(initialData);
 
     /**
      * Main
